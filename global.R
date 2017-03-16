@@ -1,6 +1,6 @@
 library(limma)
 library(DT)
-#library(xlsx)
+library(xlsx)
 
 # GO DB
 library(org.Hs.eg.db)
