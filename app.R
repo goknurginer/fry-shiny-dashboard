@@ -13,12 +13,12 @@ library(shinydashboard)
 source("global.R")
 header <- dashboardHeader(
             title = "Fry Pathway Analysis Tool",
-            titleWidth = 350
+            titleWidth = 270
           )
 
 sidebar <- dashboardSidebar(
             sidebarMenu(id = "tabs",
-              menuItem("Read Instructions", icon = icon("book"), tabName = "instructions"),
+              menuItem("Home", icon = icon("home"), tabName = "home"),
               menuItem("Watch Introduction Video", icon = icon("tv"), tabName = "video"),
               hr(),
               menuItem("Upload Data", icon = icon("upload"), tabName = "upload"),
@@ -31,16 +31,66 @@ sidebar <- dashboardSidebar(
               menuItem("Github", icon = icon("github"), tabName = "github"),
               menuItem("Email", icon = icon("envelope"), tabName = "email")
             ),
-            width = 350
+            width = 270
           )
-
 body <- dashboardBody(
           tags$head(
-            tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+            tags$link(rel = "stylesheet", type = "text/css", href = "bootstrap.css"),
+            tags$style(HTML("
+              .box.box-solid.box-primary>.box-header {
+              color:#fff;
+              background:#666666
+              }
+              
+              .box.box-solid.box-warning>.box-header {
+              color:#fff;
+              background:#00bdc0
+              }
+              
+              .box.box-solid.box-primary{
+              border-bottom-color:#00bdc0;
+              border-left-color:#00bdc0;
+              border-right-color:#00bdc0;
+              border-top-color:#00bdc0;
+              }
+
+              .skin-blue .main-header .logo {
+               background-color: #00bbbf;
+              }
+              .skin-blue .main-header .logo:hover {
+              background-color: #00bbbf;
+              }
+              
+              .skin-blue .main-header .navbar {
+              background-color: #00bbbf;
+              } 
+
+              .skin-blue .main-sidebar {
+              background-color: #a1e8ed;
+              }
+
+              .skin-blue .main-sidebar .sidebar .sidebar-menu .active a{
+                              background-color: #ffa477;
+              }
+
+              .skin-blue .main-sidebar .sidebar .sidebar-menu a{
+                              background-color: #a1e8ed;
+                              color: #ffffff;
+              }
+
+              .skin-blue .main-sidebar .sidebar .sidebar-menu a:hover{
+                              background-color: #ff9503;
+              }
+
+              .skin-blue .main-header .navbar .sidebar-toggle:hover{
+                              background-color: #ff9503;
+              }
+
+              "))
           ),
           tabItems(
-            tabItem(tabName = "instructions",
-              h2("Instructions are coming soon")
+            tabItem(tabName = "home",
+              h1("Home")
             ),
             tabItem(tabName = "video",
               h2("Youtube link is coming soon")
@@ -94,7 +144,7 @@ body <- dashboardBody(
                   ),
                   fluidRow(
                     box(
-                      title = "Save table", width = 2, solidHeader = TRUE, status = "warning",
+                      title = "Save table", width = 2, solidHeader = TRUE, status = "warning", 
                       conditionalPanel(condition = "input.run",
                         fluidRow(
                           column(12, wellPanel(
@@ -124,7 +174,7 @@ body <- dashboardBody(
           )
         )
 
-ui <- dashboardPage(header, sidebar, body, skin = "blue")
+
 
 options(shiny.maxRequestSize=100*1024^2)
 msigAll_hall <- names(Hs.H)
@@ -255,4 +305,5 @@ server <- function(input, output, session) {
   )
 }
 
+ui <- dashboardPage(header, sidebar, body, skin = "blue")
 shinyApp(ui, server)
