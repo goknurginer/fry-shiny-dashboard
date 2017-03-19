@@ -1,0 +1,77 @@
+@import url("https://fonts.googleapis.com/css?family=Muli");
+
+body, html {
+	font-family: 'Muli', sans-serif;
+}
+
+.box.box-solid.box-primary>.box-header {
+	background: #2F6AA6;
+}
+
+.box.box-solid.box-primary{
+	border-bottom-color: #2F6AA6;
+	border-left-color: #2F6AA6;
+	border-right-color: #2F6AA6;
+	border-top-color: #2F6AA6;
+}
+
+.box.box-solid.box-warning>.box-header {
+	background: #2F6AA6;
+}
+
+.box.box-solid.box-warning{
+	border-bottom-color: #2F6AA6;
+	border-left-color: #2F6AA6;
+	border-right-color: #2F6AA6;
+	border-top-color: #2F6AA6;
+}
+.skin-blue .main-header .logo {
+	background-color: #183363;
+	color: #fff;
+}
+.skin-blue .main-header .logo:hover {
+	background-color: #183363;
+}
+
+.skin-blue .main-header .navbar {
+	background-color: #183363;
+} 
+
+.skin-blue .main-sidebar {
+	background-color: #708FB5;
+}
+
+.skin-blue .main-sidebar .sidebar .sidebar-menu a{
+    background-color: #708FB5;
+	color: #fff;
+}
+
+.skin-blue .main-sidebar .sidebar .sidebar-menu .active a{
+    background-color: #2F6AA6;
+    border-left-color: #183363;
+}
+
+.skin-blue .main-sidebar .sidebar .sidebar-menu a:hover{
+    background-color: #3E9FFF;
+    border-left-color: #183363;
+}
+
+.skin-blue .main-header .navbar .sidebar-toggle:hover{
+    background-color: #3E9FFF;
+}
+
+.nav-tabs-custom>.nav-tabs>li.active{
+	border-top-color: #183363;
+}
+
+.fa-twitter {
+	color: #0084b4;
+}
+
+.fa-twitter:hover {
+	transition:all 1s ease-in-out;
+	transform:rotateZ(360deg);
+}
+
+
+

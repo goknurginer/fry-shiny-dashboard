@@ -12,81 +12,31 @@ library(shiny)
 library(shinydashboard)
 source("global.R")
 header <- dashboardHeader(
-            title = "Fry Pathway Analysis Tool",
-            titleWidth = 270
+            title = "FRY PATHWAY ANALYSIS TOOL",
+            titleWidth = 300
           )
 
 sidebar <- dashboardSidebar(
             sidebarMenu(id = "tabs",
-              menuItem("Home", icon = icon("home"), tabName = "home"),
-              menuItem("Watch Introduction Video", icon = icon("tv"), tabName = "video"),
+              menuItem("HOME", icon = icon("home"), tabName = "home"),
+              menuItem("WATCH TUTORIAL ", icon = icon("tv"), tabName = "video"),
               hr(),
-              menuItem("Upload Data", icon = icon("upload"), tabName = "upload"),
-              menuItem("Choose Pathways", icon = icon("database"), tabName = "pathway"),
-              menuItem("Results", icon = icon("table"), tabName = "results"),
-              menuItem("Charts", icon = icon("bar-chart"), tabName = "charts"),
-              menuItem("Gene Explorer", icon = icon("list"), tabName = "genes"),
+              menuItem("UPLOAD DATA", icon = icon("upload"), tabName = "upload"),
+              menuItem("CHOOSE PATHWAYS", icon = icon("database"), tabName = "pathway"),
+              menuItem("RESULTS", icon = icon("table"), tabName = "results"),
+              menuItem("CHARTS", icon = icon("bar-chart"), tabName = "charts"),
+              menuItem("GENE EXPLORER", icon = icon("list"), tabName = "genes"),
               hr(),
               menuItem("Twitter", icon = icon("twitter"), tabName = "twitter"),
               menuItem("Github", icon = icon("github"), tabName = "github"),
               menuItem("Email", icon = icon("envelope"), tabName = "email")
             ),
-            width = 270
+            width = 300
           )
 body <- dashboardBody(
           tags$head(
-            tags$link(rel = "stylesheet", type = "text/css", href = "bootstrap.css"),
-            tags$style(HTML("
-              .box.box-solid.box-primary>.box-header {
-              color:#fff;
-              background:#666666
-              }
-              
-              .box.box-solid.box-warning>.box-header {
-              color:#fff;
-              background:#00bdc0
-              }
-              
-              .box.box-solid.box-primary{
-              border-bottom-color:#00bdc0;
-              border-left-color:#00bdc0;
-              border-right-color:#00bdc0;
-              border-top-color:#00bdc0;
-              }
-
-              .skin-blue .main-header .logo {
-               background-color: #00bbbf;
-              }
-              .skin-blue .main-header .logo:hover {
-              background-color: #00bbbf;
-              }
-              
-              .skin-blue .main-header .navbar {
-              background-color: #00bbbf;
-              } 
-
-              .skin-blue .main-sidebar {
-              background-color: #a1e8ed;
-              }
-
-              .skin-blue .main-sidebar .sidebar .sidebar-menu .active a{
-                              background-color: #ffa477;
-              }
-
-              .skin-blue .main-sidebar .sidebar .sidebar-menu a{
-                              background-color: #a1e8ed;
-                              color: #ffffff;
-              }
-
-              .skin-blue .main-sidebar .sidebar .sidebar-menu a:hover{
-                              background-color: #ff9503;
-              }
-
-              .skin-blue .main-header .navbar .sidebar-toggle:hover{
-                              background-color: #ff9503;
-              }
-
-              "))
+            #tags$link(rel = "stylesheet", type = "text/css", href = "bootstrap.css"),
+            tags$link(rel = "stylesheet", type = "text/css", href = "new.css")
           ),
           tabItems(
             tabItem(tabName = "home",
@@ -97,18 +47,21 @@ body <- dashboardBody(
             ),
             tabItem(
               tabName = "upload",
-              fileInput("counts", label = "Upload expression values"),
-              fileInput("design", label = "Upload design of the experiment"),
-              checkboxInput("example", label = "Use example dataset and continue")
+              box(
+                title = "Pathway Significance Table", width = 12, solidHeader = TRUE, status = "primary",
+                fileInput("counts", label = h3("Upload expression values")),
+                fileInput("design", label = h3("Upload design of the experiment")),
+                checkboxInput("example", label = "Use example dataset and continue")
+              )
+              
             ),
             tabItem(
               tabName = "pathway",
-              selectInput("database", label = h3("Choose a database"),
+              selectInput("database", label = h5("SELECT DATABASE"),
                 choices = list("GO", "KEGG", "MSig_HALLMARK", "REACTOME")),
-              br(),
-              p(h3("Choose pathways")),
+              p(h5("SELECT PATHWAYS")),
               conditionalPanel(condition = "input.database == 'GO'",
-                selectizeInput("goSelected", label = h5("Type in the box to search for GO pathways"),
+                selectizeInput("goSelected", label = NULL,
                   choices = NULL, multiple = TRUE)),
               
               conditionalPanel(condition = "input.database == 'KEGG'",
@@ -129,13 +82,13 @@ body <- dashboardBody(
               
               # fileInput("geneList", label = h5("Upload the gene list of interest")),
               
-              actionButton("run", label = h4(strong("Apply gene set test"))),
+              actionButton("run", label = h4("APPLY GENE SET TEST")),
               h3("Continue next tab to explore the results")
             ),
             tabItem(
               tabName = "results",
               tabBox(width = "500px", height = "5000px",
-                tabPanel("Results",
+                tabPanel(h4("RESULTS"),
                   fluidRow(
                     box(
                       title = "Pathway Significance Table", width = 12, solidHeader = TRUE, status = "primary",
@@ -162,7 +115,7 @@ body <- dashboardBody(
                     )
                   )
                 ),
-                tabPanel("Pathway Network")
+                tabPanel(h4("PATHWAY NETWORK"))
               )
             ),
             tabItem(
