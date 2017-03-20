@@ -2,6 +2,11 @@ library(limma)
 library(DT)
 library(xlsx)
 
+firstup <- function(x) {
+  substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+  x
+}
+
 # GO DB
 library(org.Hs.eg.db)
 library(GO.db)
@@ -9,15 +14,8 @@ x <- Term(GOTERM)
 # Swap names and values of x
 goAll <- c(names(x))
 names(goAll) <- x
+names(goAll) <- firstup(names(goAll))
 GO <- org.Hs.egGO2EG
-
-# MsigDB HALLMARK - Hs.H object
-load("human_H_v5p2.rdata")
-msigAll_hall <- names(Hs.H)
-
-# MsigDB HALLMARK - Hs.c5 object
-load("human_c5_v5p2.rdata")
-msigAll_cancer <- names(Hs.c5)
 
 # KEGG DB
 definitions2pathways <- getKEGGPathwayNames(species.KEGG = "hsa", remove=TRUE)
@@ -35,5 +33,16 @@ REACTOME <- readLines(file)
 REACTOME <- strsplit(REACTOME, split = "\t")
 pathways <- lapply(REACTOME, function(x) x[1])
 REACTOME <- lapply(REACTOME, function(x) x[-c(1, 2)])
-names(REACTOME) <- pathways
 reactomeAll <- unlist(pathways)
+reactomeAll <- firstup(tolower(gsub("_"," ",gsub("REACTOME_", "", reactomeAll))))
+names(REACTOME) <- reactomeAll
+
+
+# MsigDB HALLMARK - Hs.H object
+load("human_H_v5p2.rdata")
+names(Hs.H) <- firstup(tolower(gsub("_", " ", gsub("HALLMARK_", "", names(Hs.H)))))
+msigdbAll <- names(Hs.H)
+
+# MsigDB HALLMARK - Hs.c5 object
+load("human_c5_v5p2.rdata")
+msigdbAll_cancer <- names(Hs.c5)

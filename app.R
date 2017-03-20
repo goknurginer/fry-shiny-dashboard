@@ -11,11 +11,15 @@
 library(shiny)
 library(shinydashboard)
 source("global.R")
+options(shiny.maxRequestSize=100*1024^2) # increase the size of the file can be uploaded
+
+# define header and its appearance
 header <- dashboardHeader(
             title = "FRY PATHWAY ANALYSIS TOOL",
             titleWidth = 300
           )
 
+# define sidebar and its appearance
 sidebar <- dashboardSidebar(
             sidebarMenu(id = "tabs",
               menuItem("HOME", icon = icon("home"), tabName = "home"),
@@ -33,10 +37,12 @@ sidebar <- dashboardSidebar(
             ),
             width = 300
           )
+
+# define body and its appearance
 body <- dashboardBody(
           tags$head(
-            #tags$link(rel = "stylesheet", type = "text/css", href = "bootstrap.css"),
-            tags$link(rel = "stylesheet", type = "text/css", href = "new.css")
+            # link the tags to design.css file and make the changes in appearances in design.css
+            tags$link(rel = "stylesheet", type = "text/css", href = "design.css") 
           ),
           tabItems(
             tabItem(tabName = "home",
@@ -51,14 +57,15 @@ body <- dashboardBody(
                 title = "Pathway Significance Table", width = 12, solidHeader = TRUE, status = "primary",
                 fileInput("counts", label = h3("Upload expression values")),
                 fileInput("design", label = h3("Upload design of the experiment")),
-                checkboxInput("example", label = "Use example dataset and continue")
+                checkboxInput("example", label = "Use example dataset and continue"),
+                conditionalPanel("output.fileUploaded", uiOutput("contrastcomp"))
               )
               
             ),
             tabItem(
               tabName = "pathway",
               selectInput("database", label = h5("SELECT DATABASE"),
-                choices = list("GO", "KEGG", "MSig_HALLMARK", "REACTOME")),
+                choices = list("GO", "KEGG", "MSigDB_HALLMARK", "REACTOME"), selected = "KEGG"),
               p(h5("SELECT PATHWAYS")),
               conditionalPanel(condition = "input.database == 'GO'",
                 selectizeInput("goSelected", label = NULL,
@@ -68,9 +75,9 @@ body <- dashboardBody(
                 selectizeInput("keggSelected", label = h5("Type to search for KEGG pathways"),
                   choices = keggAll, multiple = TRUE)),
               
-              conditionalPanel(condition = "input.database == 'MSig_HALLMARK'",
-                selectizeInput("MsigSets", label = h5("Type to search for MSig_HALLMARK pathways"),
-                  choices = msigAll_hall, multiple = TRUE)),
+              conditionalPanel(condition = "input.database == 'MSigDB_HALLMARK'",
+                selectizeInput("msigdbSelected", label = h5("Type to search for MSigDB_HALLMARK pathways"),
+                  choices = msigdbAll, multiple = TRUE)),
               
               conditionalPanel(condition = "input.database == 'REACTOME'",
                 selectizeInput("reactomeSelected", label = h5("Type to search for REACTOME pathways"),
@@ -97,7 +104,7 @@ body <- dashboardBody(
                   ),
                   fluidRow(
                     box(
-                      title = "Save table", width = 2, solidHeader = TRUE, status = "warning", 
+                      title = "Save table", width = 2, solidHeader = TRUE, status = "primary",
                       conditionalPanel(condition = "input.run",
                         fluidRow(
                           column(12, wellPanel(
@@ -127,35 +134,45 @@ body <- dashboardBody(
           )
         )
 
-
-
-options(shiny.maxRequestSize=100*1024^2)
-msigAll_hall <- names(Hs.H)
 server <- function(input, output, session) {
   updateSelectizeInput(session, "goSelected", choices = goAll, server = TRUE)
   
-  applyGS <- eventReactive(input$run, {
-    
-    if(input$database == 'GO') {
-      if (!input$allGeneSets & !is.null(input$goSelected)) input$goSelected
-      else if (input$allGeneSets) goAll
-    }
-    
-    else if (input$database == 'MSig_HALLMARK') {
-      if (!input$allGeneSets & !is.null(input$MsigSets)) input$MsigSets
-      else if (input$allGeneSets) msigAll_hall
-    }
-    
-    else if (input$database == 'REACTOME') {
-      if (!input$allGeneSets & !is.null(input$reactomeSelected)) input$reactomeSelected
-      else if (input$allGeneSets) reactomeAll
-    }
-    
-    else {
-      if (!input$allGeneSets & !is.null(input$keggSelected)) input$keggSelected
-      else if (input$allGeneSets) keggAll
-    }
+  output$fileUploaded <- reactive({
+    if (is.null(input$design))
+      0
+    else
+      1
   })
+  
+  outputOptions(output, 'fileUploaded', suspendWhenHidden=FALSE)
+  
+  output$contrastcomp <- renderUI({
+    data <- read.table(input$design$name)
+    selectInput("contrast", 
+      "Choose the contrast of interest", choices = as.list(colnames(data)[-1]))
+  })
+  
+  applyGS <- eventReactive(input$run, {
+  if(input$database == 'GO') {
+    if (!input$allGeneSets & !is.null(input$goSelected)) input$goSelected
+    else if (input$allGeneSets) goAll
+  }
+  
+  else if (input$database == 'MSigDB_HALLMARK') {
+    if (!input$allGeneSets & !is.null(input$msigdbSelected)) input$msigdbSelected
+    else if (input$allGeneSets) msigdbAll
+  }
+  
+  else if (input$database == 'REACTOME') {
+    if (!input$allGeneSets & !is.null(input$reactomeSelected)) input$reactomeSelected
+    else if (input$allGeneSets) reactomeAll
+  }
+  
+  else {
+    if (!input$allGeneSets & !is.null(input$keggSelected)) input$keggSelected
+    else if (input$allGeneSets) keggAll
+  }
+})
   
   databaseInput <- reactive({
     
@@ -164,8 +181,9 @@ server <- function(input, output, session) {
     input$run
     
     # We use isolate to avoid the dependency on database object. Because we
-    # do not want gene set test to be applied when we pick a different database
-    # before we select the gene sets
+    # do not want gene set test to be applied prior to the selection of 
+    # new gene sets
+    
     database <- isolate(input$database)
     
     if(database == 'GO') gene.sets <- as.list(GO)[applyGS()]
@@ -192,8 +210,9 @@ server <- function(input, output, session) {
     idx <- ids2indices(gene.sets, rownames(cnt))
     idx <- idx[!sapply(idx, is.null)]
     
-    fry <- fry(cnt, design =des, index = idx, sort="directional")
+    fry <- fry(cnt, design =des, index = idx, sort="directional", contrast = input$contrast)
     PathwayID <- rownames(fry)
+    rownames(fry) <- NULL
     
     if(database == 'GO') {
       m <- match(PathwayID, goAll)
@@ -209,9 +228,9 @@ server <- function(input, output, session) {
     }
     
     else if(database == 'REACTOME') 
-      fry.table <- data.frame(PathwayID = PathwayID, fry)
+      fry.table <- data.frame(PathwayName = PathwayID, fry)
     
-    else fry.table <- data.frame(PathwayID = PathwayID, fry)
+    else fry.table <- data.frame(PathwayName = PathwayID, fry)
   })
   
   output$fryTable <- DT::renderDataTable({
