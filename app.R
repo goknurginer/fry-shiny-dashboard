@@ -11,7 +11,7 @@
 library(shiny)
 library(shinydashboard)
 source("global.R")
-options(shiny.maxRequestSize=100*1024^2) # increase the size of the file can be uploaded
+options(shiny.maxRequestSize = 100*1024^2) # increase the size of the file can be uploaded
 
 # define header and its appearance
 header <- dashboardHeader(
@@ -33,7 +33,7 @@ sidebar <- dashboardSidebar(
               hr(),
               menuItem("Twitter", icon = icon("twitter"), tabName = "twitter"),
               menuItem("Github", icon = icon("github"), tabName = "github"),
-              menuItem("Email", icon = icon("envelope"), tabName = "email")
+              menuItem("Contact", icon = icon("envelope"), tabName = "email")
             ),
             width = 300
           )
@@ -54,16 +54,18 @@ body <- dashboardBody(
             tabItem(
               tabName = "upload",
               box(
-                title = "Pathway Significance Table", width = 12, solidHeader = TRUE, status = "primary",
-                fileInput("counts", label = h3("Upload expression values")),
-                fileInput("design", label = h3("Upload design of the experiment")),
-                checkboxInput("example", label = "Use example dataset and continue"),
-                conditionalPanel("output.fileUploaded", uiOutput("contrastcomp"))
+                title = "UPLOAD DATA", width = 12, solidHeader = TRUE, status = "primary",
+                fileInput("counts", label = h5("EXPRESSION MATRIX")),
+                fileInput("design", label = h5("DESIGN MATRIX")),
+                conditionalPanel("output.fileUploaded", uiOutput("contrastcomp")),
+                checkboxInput("example", label = "USE EXAMPLE DATASET AND CONTINUE")
               )
               
             ),
             tabItem(
               tabName = "pathway",
+              box(
+                title = "SELECT DATABASE AND PATHWAY", width = 12, solidHeader = TRUE, status = "primary",
               selectInput("database", label = h5("SELECT DATABASE"),
                 choices = list("GO", "KEGG", "MSigDB_HALLMARK", "REACTOME"), selected = "KEGG"),
               p(h5("SELECT PATHWAYS")),
@@ -91,38 +93,40 @@ body <- dashboardBody(
               
               actionButton("run", label = h4("APPLY GENE SET TEST")),
               h3("Continue next tab to explore the results")
+              )
             ),
             tabItem(
               tabName = "results",
-              tabBox(width = "500px", height = "5000px",
-                tabPanel(h4("RESULTS"),
-                  fluidRow(
-                    box(
-                      title = "Pathway Significance Table", width = 12, solidHeader = TRUE, status = "primary",
-                      dataTableOutput('fryTable')
-                    )
-                  ),
-                  fluidRow(
-                    box(
-                      title = "Save table", width = 2, solidHeader = TRUE, status = "primary",
-                      conditionalPanel(condition = "input.run",
-                        fluidRow(
-                          column(12, wellPanel(
-                            radioButtons('saving_type', h5("Download"), 
-                              choices = c("All", "Selected", "Filtered")),
-                            radioButtons("filetype", h5("File type"),
-                              choices = c(".csv", ".txt", ".xlsx")),
-                            downloadButton('downloadData', 'Save')
-                          )
-                            # p(downloadButton('pval_dl', 'Download'))
-                          )
-                          )
-                       
+              conditionalPanel("input.run",
+                tabBox(width = "500px", height = "5000px",
+                  tabPanel(h4("RESULTS"),
+                    fluidRow(
+                      box(
+                        title = textOutput("contrastselected"),
+                          #, textOutput("contrastselected")), 
+                        width = 12, solidHeader = TRUE, status = "primary",
+                        dataTableOutput('fryTable')
+                      )
+                    ),
+                    fluidRow(
+                      box(
+                        title = "SAVE TABLE", width = 2, solidHeader = TRUE, status = "primary",
+                          fluidRow(
+                            column(12, wellPanel(
+                              radioButtons('saving_type', h5("Download"), 
+                                choices = c("All", "Selected", "Filtered")),
+                              radioButtons("filetype", h5("File type"),
+                                choices = c(".csv", ".txt", ".xlsx")),
+                              downloadButton('downloadData', 'Save')
+                            )
+                              # p(downloadButton('pval_dl', 'Download'))
+                            )
+                            )
                       )
                     )
-                  )
-                ),
-                tabPanel(h4("PATHWAY NETWORK"))
+                  ),
+                  tabPanel(h4("PATHWAY NETWORK"))
+                )
               )
             ),
             tabItem(
@@ -144,7 +148,7 @@ server <- function(input, output, session) {
       1
   })
   
-  outputOptions(output, 'fileUploaded', suspendWhenHidden=FALSE)
+  outputOptions(output, 'fileUploaded', suspendWhenHidden = FALSE)
   
   output$contrastcomp <- renderUI({
     data <- read.table(input$design$name)
@@ -152,8 +156,14 @@ server <- function(input, output, session) {
       "Choose the contrast of interest", choices = as.list(colnames(data)[-1]))
   })
   
+  output$contrastselected <- renderText({
+    paste("PATHWAY SIGNIFICANCE TABLE FOR CONTRAST ", input$contrast)
+  })
+  # 
+  # outputOptions(output, 'conselected', suspendWhenHidden = FALSE)
+  
   applyGS <- eventReactive(input$run, {
-  if(input$database == 'GO') {
+  if (input$database == 'GO') {
     if (!input$allGeneSets & !is.null(input$goSelected)) input$goSelected
     else if (input$allGeneSets) goAll
   }
@@ -186,11 +196,11 @@ server <- function(input, output, session) {
     
     database <- isolate(input$database)
     
-    if(database == 'GO') gene.sets <- as.list(GO)[applyGS()]
+    if (database == 'GO') gene.sets <- as.list(GO)[applyGS()]
     
-    else if(database == 'KEGG') gene.sets <- KEGG[applyGS()]
+    else if (database == 'KEGG') gene.sets <- KEGG[applyGS()]
     
-    else if(database == 'REACTOME') gene.sets <- REACTOME[applyGS()]
+    else if (database == 'REACTOME') gene.sets <- REACTOME[applyGS()]
     
     else gene.sets <- Hs.H[applyGS()]
     
@@ -204,38 +214,41 @@ server <- function(input, output, session) {
     }
     
     # is the following step necessary or null sets have already been discarded
-    #PathwayName <- names(goAll[goAll %in% names(gene.sets)])
-    #gene.sets <- gene.sets[!sapply(gene.sets, is.null)]
+    # PathwayName <- names(goAll[goAll %in% names(gene.sets)])
+    # gene.sets <- gene.sets[!sapply(gene.sets, is.null)]
     
     idx <- ids2indices(gene.sets, rownames(cnt))
     idx <- idx[!sapply(idx, is.null)]
     
-    fry <- fry(cnt, design =des, index = idx, sort="directional", contrast = input$contrast)
+    if (input$example) fry <- fry(cnt, design = des, index = idx, sort = "directional")
+    else fry <- fry(cnt, design = des, index = idx, sort = "directional", contrast = input$contrast)
     PathwayID <- rownames(fry)
     rownames(fry) <- NULL
+    fry <- format(fry, digits = 2)
     
-    if(database == 'GO') {
+    if (database == 'GO') {
       m <- match(PathwayID, goAll)
       PathwayName <- names(goAll[m])
       fry.table <- data.frame(PathwayID = PathwayID,
         PathwayName = PathwayName, fry)
     }
     
-    else if(database == 'KEGG') { m <- match(PathwayID, keggAll)
+    else if (database == 'KEGG') { m <- match(PathwayID, keggAll)
     PathwayName <- names(keggAll[m])
     fry.table <- data.frame(PathwayID = PathwayID,
       PathwayName = PathwayName, fry)
     }
     
-    else if(database == 'REACTOME') 
+    else if (database == 'REACTOME') 
       fry.table <- data.frame(PathwayName = PathwayID, fry)
     
     else fry.table <- data.frame(PathwayName = PathwayID, fry)
   })
   
   output$fryTable <- DT::renderDataTable({
-    format(databaseInput(), scientific = TRUE, digits = 3)
-  }, options = list(orderClasses = TRUE), filter = 'top'
+    databaseInput()
+  }, options = list(orderClasses = TRUE, pageLength = 5, autoWidth = TRUE),
+    filter = 'top'
   )
   
   output$downloadData <- downloadHandler(
@@ -249,7 +262,7 @@ server <- function(input, output, session) {
     # This function should write data to a file given to it by
     # the argument 'file'.
     content = function(file) {
-      if(input$filetype %in% c(".csv", ".txt")) {
+      if (input$filetype %in% c(".csv", ".txt")) {
         sep <- switch(input$filetype, ".csv" = ",", ".txt" = "\t")
         if (input$saving_type == "Filtered")
           s = input$fryTable_rows_all

@@ -67,6 +67,10 @@ body, html {
 .fa-twitter {
 	color: #0084b4;
 }
+.fa-github {
+	color: #24292e;
+}
+
 
 .fa-twitter:hover {
 	transition:all 1s ease-in-out;
