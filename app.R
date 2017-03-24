@@ -152,7 +152,7 @@ server <- function(input, output, session) {
   outputOptions(output, 'fileUploaded', suspendWhenHidden = FALSE)
   
   output$contrastcomp <- renderUI({
-    data <- read.table(input$design$name)
+    data <- read.table(input$design$datapath)
     selectInput("contrast", 
       "Choose the contrast of interest", choices = as.list(colnames(data)[-1]))
   })
@@ -206,12 +206,12 @@ server <- function(input, output, session) {
     else gene.sets <- Hs.H[applyGS()]
     
     if (input$example) {
-      cnt <- read.table("dgelist.txt")
-      des <- read.table("design.txt")
+      cnt <- read.table("../../Google Drive/Files/datasets/dgelist.txt")
+      des <- read.table("../../Google Drive/Files/datasets/design.txt")
     }
     else{
-      cnt <- read.table(input$counts$name)
-      des <- read.table(input$design$name) 
+      cnt <- read.table(input$counts$datapath)
+      des <- read.table(input$design$datapath) 
     }
     
     # is the following step necessary or null sets have already been discarded
