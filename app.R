@@ -6,7 +6,7 @@
 #
 #  Goknur Giner, The Walter and Eliza Hall Institute of Medical Research
 #  March 16th, 2017
-# Local path: Google Drive\Projects\Github\fry-shiny-dashboard
+# Local path: C:\Users\giner.g.WEHI\Github\fry-shiny-dashboard
 #---------------------------------------------------------------------------
 
 library(shiny)
